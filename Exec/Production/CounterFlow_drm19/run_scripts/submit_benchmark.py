@@ -16,6 +16,12 @@ Usage:
 
     # Submit everything, chain benchmark after coldflow:
     python submit_benchmark.py --coldflow --then-benchmark --nodes 2
+
+    # Override stop time (e.g. run longer to get a fully developed flame):
+    python submit_benchmark.py --benchmark --stop-time 0.5
+
+    # Chain with a longer stop time:
+    python submit_benchmark.py --coldflow --then-benchmark --nodes 2 --stop-time 0.5
 """
 
 import argparse
@@ -108,7 +114,8 @@ def submit_coldflow(nodes):
     return submit_job(script, "coldflow")
 
 
-def submit_benchmark(nodes, solvers=None, coldflow_plt=None, dependency_job_id=None):
+def submit_benchmark(nodes, solvers=None, coldflow_plt=None,
+                     dependency_job_id=None, stop_time=None):
     if solvers is None:
         solvers = SOLVERS
 
@@ -119,22 +126,31 @@ def submit_benchmark(nodes, solvers=None, coldflow_plt=None, dependency_job_id=N
             print("  Run cold flow first: python submit_benchmark.py --coldflow")
             return
 
+    # Build any command-line overrides to pass through to the AMReX executable.
+    # These take precedence over values in the input file.
+    extra_args = ""
+    if stop_time is not None:
+        extra_args += f"amr.stop_time={stop_time}"
+
     ntasks    = nodes * CORES_PER_NODE
     partition = partition_for(nodes)
     print(f"\n=== Submitting benchmark jobs ===")
     print(f"  {nodes} node(s) × {CORES_PER_NODE} cores = {ntasks} MPI tasks  [{partition}]")
     print(f"  Cold flow restart: {coldflow_plt}")
+    if stop_time is not None:
+        print(f"  Stop time override: {stop_time} s  (input file value ignored)")
     print(f"  Solvers: {solvers}")
 
     job_ids = {}
     for solver in solvers:
         script = render_template(TEMPLATE_PATH, {
-            "SOLVER_NAME": solver,
-            "CASE_DIR":    CASE_DIR,
+            "SOLVER_NAME":  solver,
+            "CASE_DIR":     CASE_DIR,
             "COLDFLOW_PLT": coldflow_plt,
-            "NODES":       nodes,
-            "NTASKS":      ntasks,
-            "PARTITION":   partition,
+            "NODES":        nodes,
+            "NTASKS":       ntasks,
+            "PARTITION":    partition,
+            "EXTRA_ARGS":   extra_args,
         })
         job_id = submit_job(
             script,
@@ -164,6 +180,10 @@ def main():
                         help="Path to coldflow plotfile to restart from")
     parser.add_argument("--then-benchmark", action="store_true",
                         help="Auto-submit benchmark after coldflow finishes (SLURM dependency)")
+    parser.add_argument("--stop-time", type=float, default=None,
+                        help="Override amr.stop_time (seconds) for benchmark runs. "
+                             "Use this to run longer if the flame has not fully developed. "
+                             "If not set, the value in the input file is used (0.150 s).")
     parser.add_argument("--nodes", type=int, default=2,
                         help="Number of nodes per job (default: 2). "
                              "Partition is chosen automatically: "
@@ -187,10 +207,12 @@ def main():
             solvers=solvers,
             coldflow_plt=args.coldflow_plt,
             dependency_job_id=dependency,
+            stop_time=args.stop_time,
         )
     elif args.then_benchmark and coldflow_job_id:
         # --coldflow --then-benchmark without --benchmark: chain automatically
-        submit_benchmark(nodes=args.nodes, dependency_job_id=coldflow_job_id)
+        submit_benchmark(nodes=args.nodes, dependency_job_id=coldflow_job_id,
+                         stop_time=args.stop_time)
 
 
 if __name__ == "__main__":

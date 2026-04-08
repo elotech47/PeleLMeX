@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Plot centerline temperature profile for all benchmark solver runs.
+Plot centerline temperature profile for all benchmark solver runs,
+including the initial cold flow profile as a reference.
 
 Reads the latest plotfile from each solver's results/ directory, extracts
 temperature along the x-axis at y=0 (through the stagnation plane), and
@@ -13,6 +14,7 @@ Usage:
     python plot_centerline.py                             # latest plotfile, all solvers
     python plot_centerline.py --step 500                  # specific step
     python plot_centerline.py --solvers cvode_denseAJ rk64
+    python plot_centerline.py --no-coldflow               # skip initial profile
     python plot_centerline.py --output my_comparison.png
     python plot_centerline.py --results-dir /path/to/results
 """
@@ -43,6 +45,8 @@ STYLES = {
     "rk64":          dict(color="#9467bd", ls=(0, (5,1)), lw=1.8),
 }
 
+COLDFLOW_STYLE = dict(color="black", ls=(0, (3, 1, 1, 1)), lw=1.4, alpha=0.7)
+
 # ============================================================
 # Plotfile helpers
 # ============================================================
@@ -62,12 +66,10 @@ def find_plotfile(solver_dir, step=None):
 
 def read_plotfile_time(pltfile):
     """Read simulation time from the plotfile Header."""
-    header = Path(pltfile) / "Header"
-    with open(header) as fh:
+    with open(Path(pltfile) / "Header") as fh:
         lines = fh.read().splitlines()
-    # Format: version / n_fields / <fields> / dim / time / ...
     n_fields = int(lines[1])
-    time_line = 2 + n_fields + 1   # after version, count, field names, dim
+    time_line = 2 + n_fields + 1   # version / count / fields / dim / time
     return float(lines[time_line])
 
 
@@ -89,21 +91,13 @@ def extract_centerline(pltfile, field="temp"):
     x_hi = float(ds.domain_right_edge[0].d)
 
     # yt represents 2-D AMReX files with a thin z dimension; use its midpoint
-    if ds.dimensionality == 2:
-        cz = float(ds.domain_center[2].d)
-        start = [x_lo, 0.0, cz]
-        end   = [x_hi, 0.0, cz]
-    else:
-        cz    = 0.0
-        start = [x_lo, 0.0, cz]
-        end   = [x_hi, 0.0, cz]
+    cz = float(ds.domain_center[2].d) if ds.dimensionality == 2 else 0.0
+    ray = ds.ray([x_lo, 0.0, cz], [x_hi, 0.0, cz])
 
-    ray    = ds.ray(start, end)
-    x_pos  = ray["x"].d
-    values = ray[("boxlib", field)].d
-
-    order = np.argsort(x_pos)
-    return x_pos[order] * 1e3, values[order]   # x in mm
+    order  = np.argsort(ray["x"].d)
+    x_mm   = ray["x"].d[order] * 1e3
+    values = ray[("boxlib", field)].d[order]
+    return x_mm, values
 
 
 # ============================================================
@@ -120,8 +114,10 @@ def main():
                         help="Subset of solvers (default: all five)")
     parser.add_argument("--field", default="temp",
                         help="Plotfile field name to plot (default: temp)")
+    parser.add_argument("--no-coldflow", action="store_true",
+                        help="Skip the initial cold flow reference profile")
     parser.add_argument("--output", default=None,
-                        help="Output PNG path (default: centerline_temp_<tag>.png in CASE_DIR)")
+                        help="Output PNG path (default: centerline_temp_<tag>.png)")
     parser.add_argument("--results-dir", default=str(RESULTS_DIR),
                         help=f"Path to results/ directory (default: {RESULTS_DIR})")
     args = parser.parse_args()
@@ -135,7 +131,25 @@ def main():
     results_dir = Path(args.results_dir)
     solvers     = args.solvers or ALL_SOLVERS
 
-    # ── load profiles ────────────────────────────────────────────────────────
+    # ── cold flow initial profile ─────────────────────────────────────────────
+    coldflow_profile = None
+    if not args.no_coldflow:
+        coldflow_dir = results_dir / "coldflow"
+        coldflow_plt = find_plotfile(coldflow_dir)
+        if coldflow_plt is not None:
+            try:
+                t_cf = read_plotfile_time(coldflow_plt)
+                print(f"  {'coldflow (initial)':<20s}  {coldflow_plt.name}"
+                      f"  (t = {t_cf*1e3:.1f} ms) ...", end=" ", flush=True)
+                x_mm, T = extract_centerline(coldflow_plt, field=args.field)
+                coldflow_profile = (x_mm, T, t_cf)
+                print(f"T_max = {T.max():.0f} K")
+            except Exception as exc:
+                print(f"FAILED — {exc}")
+        else:
+            print("  [skip] cold flow: no plotfile found in results/coldflow/")
+
+    # ── solver profiles ───────────────────────────────────────────────────────
     profiles = {}
     for solver in solvers:
         solver_dir = results_dir / solver
@@ -159,17 +173,23 @@ def main():
         except Exception as exc:
             print(f"FAILED — {exc}")
 
-    if not profiles:
+    if not profiles and coldflow_profile is None:
         print("\nNo profiles loaded. Check that results/ dirs contain plt* files.")
         sys.exit(1)
 
-    # ── plot ─────────────────────────────────────────────────────────────────
+    # ── plot ──────────────────────────────────────────────────────────────────
     fig, ax = plt.subplots(figsize=(8, 5))
+
+    # Draw cold flow first so it sits behind the solver curves
+    if coldflow_profile is not None:
+        x_mm, T, t_cf = coldflow_profile
+        ax.plot(x_mm, T,
+                label=f"initial / cold flow  (t = {t_cf*1e3:.1f} ms)",
+                **COLDFLOW_STYLE)
 
     for solver, (x_mm, T, t_sim) in profiles.items():
         style = STYLES.get(solver, {})
-        label = f"{solver}  (t = {t_sim*1e3:.1f} ms)"
-        ax.plot(x_mm, T, label=label, **style)
+        ax.plot(x_mm, T, label=f"{solver}  (t = {t_sim*1e3:.1f} ms)", **style)
 
     ax.set_xlabel("x  (mm)", fontsize=13)
     ax.set_ylabel("Temperature  (K)", fontsize=13)
@@ -179,7 +199,7 @@ def main():
     ax.tick_params(labelsize=11)
     plt.tight_layout()
 
-    # ── save ─────────────────────────────────────────────────────────────────
+    # ── save ──────────────────────────────────────────────────────────────────
     if args.output:
         outpath = Path(args.output)
     else:

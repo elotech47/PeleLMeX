@@ -1,127 +1,122 @@
 # CounterFlow_drm19 — Running on LONI QB2
 
-This is a 2-D counterflow diffusion flame benchmark using the DRM19 methane mechanism.
+2-D counterflow diffusion flame benchmark using the DRM19 methane mechanism.
 See [`CASE_REPORT.md`](CASE_REPORT.md) for full physics documentation.
+
+---
+
+## Current status
+
+- [x] Cold flow complete — steady-state flow field available in `results/coldflow/`
+- [ ] Benchmark runs — submit with `submit_benchmark.py --benchmark`
 
 ---
 
 ## Prerequisites
 
-Before submitting any jobs, you need a compiled executable in this directory.
+A compiled executable must exist in this directory before submitting any jobs.
 
-### 1. Sync the repo to the cluster
-
-From your local machine:
+### Sync and build
 
 ```bash
+# From local machine
 bash ~/combustion_research/sync_to_cluster.sh
-```
 
-### 2. Build on the cluster
-
-SSH into QB2 and build:
-
-```bash
+# On QB2
 ssh qb2.loni.org
-cd /ddnB/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19
-source ~/combustion_research/PeleLMeX/setup_env_loni.sh
+cd /work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19
+source /work/elo/combustion_research/PeleLMeX/setup_env_loni.sh
 make -j8
+ls -lh PeleLMeX2d.gnu.MPI.ex   # confirm it exists
 ```
 
-The executable will be `PeleLMeX2d.gnu.MPI.ex`. Confirm it exists before submitting jobs:
-
-```bash
-ls -lh PeleLMeX2d.gnu.MPI.ex
-```
-
-> **Changing the mechanism?** Run `bash run_scripts/set_fuel.sh --fuel CH4 --mechanism drm19`
-> then `make realclean && make -j8` before submitting.
+> **Changing the mechanism?**  
+> `bash run_scripts/set_fuel.sh --fuel CH4 --mechanism drm19`  
+> then `make realclean && make -j8`.
 
 ---
 
-## Running the Benchmark
+## Submitting benchmark runs
 
-The benchmark has two stages: (1) develop the cold flow field, (2) restart from it with
-each chemistry solver. The `submit_benchmark.py` script handles both.
-
-### Option A — Submit everything in one command (recommended)
-
-This submits the cold flow job and chains all 5 benchmark jobs to start automatically
-after it finishes. The `--nodes` flag controls how many nodes each job gets; the
-partition (`single` vs `workq`) is chosen automatically.
+The cold flow is already done. Submit the 5 solver benchmark runs directly:
 
 ```bash
-cd /ddnB/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19
+cd /work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19
 
-# 2 nodes each (40 MPI tasks) — workq partition
-python run_scripts/submit_benchmark.py --coldflow --then-benchmark --nodes 2
+# All 5 solvers, 2 nodes each (40 MPI tasks), default stop time from input file
+python run_scripts/submit_benchmark.py --benchmark --nodes 2
 
-# 4 nodes each (80 MPI tasks)
-python run_scripts/submit_benchmark.py --coldflow --then-benchmark --nodes 4
+# Run longer if the flame hasn't fully developed (recommended: 0.3–0.5 s)
+python run_scripts/submit_benchmark.py --benchmark --nodes 2 --stop-time 0.5
 
-# Single node (20 tasks) — stays on the single partition
-python run_scripts/submit_benchmark.py --coldflow --then-benchmark --nodes 1
+# 4 nodes (80 tasks) for a faster run
+python run_scripts/submit_benchmark.py --benchmark --nodes 4 --stop-time 0.5
+
+# Single solver only
+python run_scripts/submit_benchmark.py --benchmark --solver cvode_denseAJ --nodes 2 --stop-time 0.5
+```
+
+The script auto-detects the latest plotfile in `results/coldflow/` as the restart point.
+To specify one explicitly:
+
+```bash
+python run_scripts/submit_benchmark.py --benchmark \
+    --coldflow-plt results/coldflow/plt01234 \
+    --nodes 2 --stop-time 0.5
 ```
 
 > **Partition rules (QB2):**
-> - `--nodes 1` → `single` partition
-> - `--nodes 2+` → `workq` partition
+> `--nodes 1` → `single` partition, `--nodes 2+` → `workq` partition.  
+> This is handled automatically — no need to set it manually.
 
-### Option B — Submit stages manually
+### Starting fresh (cold flow + benchmark in one command)
 
-**Step 1:** Submit cold flow only:
-
-```bash
-python run_scripts/submit_benchmark.py --coldflow --nodes 2
-```
-
-Wait for it to finish (`squeue -u elo`), then find the final plotfile:
+If you ever need to redo the cold flow:
 
 ```bash
-ls -dt results/coldflow/plt* | head -1
-```
-
-**Step 2:** Submit all benchmark solvers (auto-detects the latest cold flow plotfile):
-
-```bash
-python run_scripts/submit_benchmark.py --benchmark --nodes 4
-```
-
-Or submit a specific solver only:
-
-```bash
-python run_scripts/submit_benchmark.py --benchmark --solver cvode_denseAJ --nodes 2
-```
-
-Or pass the plotfile path explicitly:
-
-```bash
-python run_scripts/submit_benchmark.py --benchmark --coldflow-plt results/coldflow/plt01234 --nodes 4
+python run_scripts/submit_benchmark.py --coldflow --then-benchmark --nodes 2 --stop-time 0.5
 ```
 
 ---
 
-## Monitoring Jobs
+## Monitoring
 
 ```bash
-# Show your running/pending jobs
-squeue -u elo
-
-# Watch them live
-watch -n 30 squeue -u elo
-
-# Tail a running log
-tail -f logs/run_cvode_denseAJ.log
-
-# Check cold flow progress
-tail -f logs/coldflow.log
+squeue -u elo                          # current jobs
+watch -n 30 squeue -u elo             # live view
+tail -f logs/run_cvode_denseAJ.log    # follow a running solver
+grep "STEP\|T_max\|Total" logs/run_cvode_denseAJ.log   # progress snapshot
 ```
 
 ---
 
-## Collecting Results
+## Plotting results
 
-Once benchmark jobs finish, extract wall-clock timing from all logs:
+Requires `yt` and `matplotlib` (install once with `pip install --user yt matplotlib`):
+
+```bash
+# Centerline temperature — all solvers vs. initial cold flow profile
+python run_scripts/plot_centerline.py
+
+# Specific step
+python run_scripts/plot_centerline.py --step 500
+
+# Custom output path
+python run_scripts/plot_centerline.py --output ~/my_plot.png
+
+# Skip the cold flow reference line
+python run_scripts/plot_centerline.py --no-coldflow
+```
+
+The plot is saved to `centerline_temp_latest.png` in the case directory. Copy it back:
+
+```bash
+scp qb2.loni.org:/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19/centerline_temp_latest.png .
+```
+
+---
+
+## Collecting timing results
 
 ```bash
 bash run_scripts/collect_timings.sh
@@ -134,76 +129,57 @@ Solver               | Total Time (s)  | Steps
 ---------------------+-----------------+----------
 cvode_dense          | 1842.3          | 500
 cvode_denseAJ        | 1204.7          | 500
-cvode_sparse         | 987.1           | 500
+cvode_sparse         |  987.1          | 500
 cvode_gmres          | 1531.8          | 500
-rk64                 | 623.4           | 500
+rk64                 |  623.4          | 500
 ```
 
 Plotfiles and checkpoints are in `results/<solver>/`.
 
 ---
 
-## Output Structure After a Full Run
+## Output structure
 
 ```
 CounterFlow_drm19/
 ├── results/
-│   ├── coldflow/
-│   │   ├── plt00000, plt00010, ...    cold flow plotfiles
-│   │   └── chk00000, ...             checkpoints
+│   ├── coldflow/          ← already done
 │   ├── cvode_dense/
-│   │   ├── plt00000, ...
-│   │   └── chk00000, ...
-│   ├── cvode_denseAJ/  ...
-│   ├── cvode_sparse/   ...
-│   ├── cvode_gmres/    ...
-│   └── rk64/           ...
+│   ├── cvode_denseAJ/
+│   ├── cvode_sparse/
+│   ├── cvode_gmres/
+│   └── rk64/
 └── logs/
-    ├── coldflow.log
     ├── run_cvode_dense.log
     ├── run_cvode_denseAJ.log
     ├── run_cvode_sparse.log
     ├── run_cvode_gmres.log
     ├── run_rk64.log
     └── slurm_logs/
-        ├── pelelm_coldflow_<jobid>.out
-        └── pelelm_bench_<solver>_<jobid>.out
 ```
 
 ---
 
 ## Troubleshooting
 
+**Flame not fully developed** — resubmit with a longer stop time:
+```bash
+python run_scripts/submit_benchmark.py --benchmark --nodes 2 --stop-time 0.5
+```
+
 **Job fails immediately / executable not found**
 ```bash
-ls PeleLMeX2d.gnu.MPI.ex   # must exist
-source setup_env_loni.sh    # reload environment
+ls PeleLMeX2d.gnu.MPI.ex
+source /work/elo/combustion_research/PeleLMeX/setup_env_loni.sh
 ```
 
-**Cold flow didn't reach steady state**
-Increase `stop_time` in `inputs/input.coldflow` (default 0.500 s) and resubmit.
-Check convergence in Paraview by looking at the velocity field over time.
+**Benchmark crashes at ignition** — ignition kernel may be too large for the grid.
+Reduce `prob.ignition_SphRad` in the input files (currently 1.5 mm).
 
-**Benchmark crashes at ignition**
-The ignition kernel (`ignition_SphT = 1000 K`, `ignition_SphRad = 1.5 mm`) may be too large
-relative to the grid. Try reducing `prob.ignition_SphRad` in the input files.
+**CVODE diverges** — tighten tolerances in the relevant input file:
+`ode.rtol = 1e-7`, `ode.atol = 1e-6`, or `cvode.max_order = 3`.
 
-**CVODE solver diverges**
-Tighten tolerances: `ode.rtol = 1e-7`, `ode.atol = 1e-6`, or reduce `cvode.max_order = 3`.
-
-**Need to rerun a single solver**
+**Rerun a single solver**
 ```bash
-python run_scripts/submit_benchmark.py --benchmark --solver rk64
-```
-
----
-
-## Updating the Fuel or Mechanism
-
-To switch fuel species and chemistry mechanism everywhere at once:
-
-```bash
-bash run_scripts/set_fuel.sh --fuel CH4 --mechanism drm19
-# Then rebuild if mechanism changed:
-make realclean && make -j8
+python run_scripts/submit_benchmark.py --benchmark --solver rk64 --nodes 2 --stop-time 0.5
 ```

@@ -41,6 +41,7 @@ mpirun -np {{NTASKS}} ${EXE} ${CASE_DIR}/inputs/input.${SOLVER_NAME} \
     amr.initDataPlt=${COLDFLOW_PLT} \
     amr.plot_file=${CASE_DIR}/results/${SOLVER_NAME}/plt \
     amr.check_file=${CASE_DIR}/results/${SOLVER_NAME}/chk \
+    {{EXTRA_ARGS}} \
     2>&1 | tee ${CASE_DIR}/logs/run_${SOLVER_NAME}.log
 
 echo "Benchmark run complete: ${SOLVER_NAME}"
