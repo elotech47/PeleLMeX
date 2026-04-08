@@ -72,11 +72,11 @@ amr.stop_time = 0.150
 amr.cfl = 0.1
 amr.derive_plot_vars = avg_pressure mag_vort mass_fractions mixture_fraction
 
-peleLM.fuel_name = NC12H26
+peleLM.fuel_name = CH4
 peleLM.mixtureFraction.format = Cantera
 peleLM.mixtureFraction.type   = mass
 peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
-peleLM.mixtureFraction.fuelTank = NC12H26:1.0
+peleLM.mixtureFraction.fuelTank = CH4:1.0
 
 peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
