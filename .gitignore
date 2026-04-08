@@ -32,3 +32,6 @@ tmp_build_dir/
 *.ex
 plt*/
 chk*/
+*.slurm
+*.err
+*.out
