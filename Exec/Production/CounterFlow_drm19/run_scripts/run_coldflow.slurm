@@ -3,10 +3,10 @@
 #SBATCH --output={{CASE_DIR}}/logs/slurm_logs/%x_%j.out
 #SBATCH --error={{CASE_DIR}}/logs/slurm_logs/%x_%j.err
 #SBATCH --time=04:00:00
-#SBATCH --nodes=1
-#SBATCH --ntasks=8
+#SBATCH --nodes={{NODES}}
+#SBATCH --ntasks={{NTASKS}}
 #SBATCH --cpus-per-task=1
-#SBATCH --partition=single
+#SBATCH --partition={{PARTITION}}
 #SBATCH -A loni_chemnet3
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=eikpon1@lsu.edu
@@ -33,10 +33,11 @@ EXE="${CASE_DIR}/PeleLMeX2d.gnu.MPI.ex"
 echo "Starting cold flow run..."
 echo "Case dir: ${CASE_DIR}"
 echo "Executable: ${EXE}"
+echo "Nodes: {{NODES}}  Tasks: {{NTASKS}}"
 
 cd ${CASE_DIR}/results/coldflow
 
-mpirun -np 8 ${EXE} ${CASE_DIR}/inputs/input.coldflow \
+mpirun -np {{NTASKS}} ${EXE} ${CASE_DIR}/inputs/input.coldflow \
     amr.plot_file=${CASE_DIR}/results/coldflow/plt \
     amr.check_file=${CASE_DIR}/results/coldflow/chk \
     2>&1 | tee ${CASE_DIR}/logs/coldflow.log

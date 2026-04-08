@@ -2,21 +2,23 @@
 """
 PeleLMeX solver benchmark submission script.
 Usage:
-    # Submit cold flow first:
+    # Submit cold flow first (1 node):
     python submit_benchmark.py --coldflow
 
-    # After cold flow finishes, submit all benchmark solvers:
-    python submit_benchmark.py --benchmark
+    # Submit cold flow on 2 nodes:
+    python submit_benchmark.py --coldflow --nodes 2
+
+    # Submit all benchmark solvers (2 nodes each):
+    python submit_benchmark.py --benchmark --nodes 2
 
     # Submit a specific solver only:
-    python submit_benchmark.py --benchmark --solver cvode_denseAJ
+    python submit_benchmark.py --benchmark --solver cvode_denseAJ --nodes 4
 
-    # Submit benchmark after coldflow job completes (SLURM dependency):
-    python submit_benchmark.py --coldflow --then-benchmark
+    # Submit everything, chain benchmark after coldflow:
+    python submit_benchmark.py --coldflow --then-benchmark --nodes 2
 """
 
 import argparse
-import os
 import subprocess
 import glob
 from pathlib import Path
@@ -26,10 +28,13 @@ from pathlib import Path
 # ============================================================
 CASE_DIR = Path("/ddnB/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19")
 RUN_SCRIPTS_DIR = CASE_DIR / "run_scripts"
-RESULTS_DIR = CASE_DIR / "results"
-LOGS_DIR = CASE_DIR / "logs" / "slurm_logs"
-TEMPLATE_PATH = RUN_SCRIPTS_DIR / "run_benchmark.slurm.template"
-COLDFLOW_SLURM = RUN_SCRIPTS_DIR / "run_coldflow.slurm"
+RESULTS_DIR     = CASE_DIR / "results"
+LOGS_DIR        = CASE_DIR / "logs" / "slurm_logs"
+TEMPLATE_PATH   = RUN_SCRIPTS_DIR / "run_benchmark.slurm.template"
+COLDFLOW_SLURM  = RUN_SCRIPTS_DIR / "run_coldflow.slurm"
+
+# QB2 has 20 cores per node
+CORES_PER_NODE = 20
 
 SOLVERS = [
     "cvode_dense",
@@ -42,6 +47,15 @@ SOLVERS = [
 # ============================================================
 # Helpers
 # ============================================================
+def partition_for(nodes):
+    """
+    QB2 partition rules:
+      single  — 1 node only
+      workq   — 2+ nodes (standard multi-node queue)
+    """
+    return "single" if nodes == 1 else "workq"
+
+
 def render_template(template_path, replacements):
     """Fill {{KEY}} placeholders in a template string."""
     text = Path(template_path).read_text()
@@ -51,7 +65,7 @@ def render_template(template_path, replacements):
 
 
 def submit_job(script_content, job_name, dependency_job_id=None):
-    """Write script to a temp file and submit via sbatch."""
+    """Write rendered script to logs dir and submit via sbatch."""
     script_path = LOGS_DIR / f"{job_name}.slurm"
     script_path.parent.mkdir(parents=True, exist_ok=True)
     script_path.write_text(script_content)
@@ -63,43 +77,41 @@ def submit_job(script_content, job_name, dependency_job_id=None):
 
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"ERROR submitting {job_name}:\n{result.stderr}")
+        print(f"  ERROR submitting {job_name}:\n{result.stderr}")
         return None
 
-    # sbatch output: "Submitted batch job 12345"
-    job_id = result.stdout.strip().split()[-1]
+    job_id = result.stdout.strip().split()[-1]   # "Submitted batch job 12345"
     print(f"  Submitted {job_name} → job {job_id}")
     return job_id
 
 
 def find_latest_coldflow_plt():
     """Find the most recent coldflow plotfile."""
-    pattern = str(RESULTS_DIR / "coldflow" / "plt*")
-    candidates = sorted(glob.glob(pattern))
-    if not candidates:
-        return None
-    return candidates[-1]
+    candidates = sorted(glob.glob(str(RESULTS_DIR / "coldflow" / "plt*")))
+    return candidates[-1] if candidates else None
 
 
 # ============================================================
 # Actions
 # ============================================================
-def submit_coldflow():
-    """Submit the cold flow job."""
-    print("\n=== Submitting cold flow job ===")
+def submit_coldflow(nodes):
+    ntasks    = nodes * CORES_PER_NODE
+    partition = partition_for(nodes)
+    print(f"\n=== Submitting cold flow job ===")
+    print(f"  {nodes} node(s) × {CORES_PER_NODE} cores = {ntasks} MPI tasks  [{partition}]")
     script = render_template(COLDFLOW_SLURM, {
-        "CASE_DIR": CASE_DIR,
+        "CASE_DIR":   CASE_DIR,
+        "NODES":      nodes,
+        "NTASKS":     ntasks,
+        "PARTITION":  partition,
     })
-    job_id = submit_job(script, "coldflow")
-    return job_id
+    return submit_job(script, "coldflow")
 
 
-def submit_benchmark(solvers=None, coldflow_plt=None, dependency_job_id=None):
-    """Submit benchmark jobs for each solver."""
+def submit_benchmark(nodes, solvers=None, coldflow_plt=None, dependency_job_id=None):
     if solvers is None:
         solvers = SOLVERS
 
-    # Auto-detect coldflow plotfile if not specified
     if coldflow_plt is None:
         coldflow_plt = find_latest_coldflow_plt()
         if coldflow_plt is None:
@@ -107,7 +119,10 @@ def submit_benchmark(solvers=None, coldflow_plt=None, dependency_job_id=None):
             print("  Run cold flow first: python submit_benchmark.py --coldflow")
             return
 
+    ntasks    = nodes * CORES_PER_NODE
+    partition = partition_for(nodes)
     print(f"\n=== Submitting benchmark jobs ===")
+    print(f"  {nodes} node(s) × {CORES_PER_NODE} cores = {ntasks} MPI tasks  [{partition}]")
     print(f"  Cold flow restart: {coldflow_plt}")
     print(f"  Solvers: {solvers}")
 
@@ -115,8 +130,11 @@ def submit_benchmark(solvers=None, coldflow_plt=None, dependency_job_id=None):
     for solver in solvers:
         script = render_template(TEMPLATE_PATH, {
             "SOLVER_NAME": solver,
-            "CASE_DIR": CASE_DIR,
+            "CASE_DIR":    CASE_DIR,
             "COLDFLOW_PLT": coldflow_plt,
+            "NODES":       nodes,
+            "NTASKS":      ntasks,
+            "PARTITION":   partition,
         })
         job_id = submit_job(
             script,
@@ -146,6 +164,10 @@ def main():
                         help="Path to coldflow plotfile to restart from")
     parser.add_argument("--then-benchmark", action="store_true",
                         help="Auto-submit benchmark after coldflow finishes (SLURM dependency)")
+    parser.add_argument("--nodes", type=int, default=2,
+                        help="Number of nodes per job (default: 2). "
+                             "Partition is chosen automatically: "
+                             "single (1 node) or workq (2+ nodes).")
     args = parser.parse_args()
 
     if not args.coldflow and not args.benchmark:
@@ -155,19 +177,20 @@ def main():
     coldflow_job_id = None
 
     if args.coldflow:
-        coldflow_job_id = submit_coldflow()
+        coldflow_job_id = submit_coldflow(nodes=args.nodes)
 
     if args.benchmark:
-        solvers = [args.solver] if args.solver else None
+        solvers    = [args.solver] if args.solver else None
         dependency = coldflow_job_id if args.then_benchmark else None
         submit_benchmark(
+            nodes=args.nodes,
             solvers=solvers,
             coldflow_plt=args.coldflow_plt,
             dependency_job_id=dependency,
         )
     elif args.then_benchmark and coldflow_job_id:
-        # --coldflow --then-benchmark: chain automatically
-        submit_benchmark(dependency_job_id=coldflow_job_id)
+        # --coldflow --then-benchmark without --benchmark: chain automatically
+        submit_benchmark(nodes=args.nodes, dependency_job_id=coldflow_job_id)
 
 
 if __name__ == "__main__":

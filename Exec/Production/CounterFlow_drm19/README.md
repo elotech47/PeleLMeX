@@ -47,19 +47,32 @@ each chemistry solver. The `submit_benchmark.py` script handles both.
 ### Option A — Submit everything in one command (recommended)
 
 This submits the cold flow job and chains all 5 benchmark jobs to start automatically
-after it finishes:
+after it finishes. The `--nodes` flag controls how many nodes each job gets; the
+partition (`single` vs `workq`) is chosen automatically.
 
 ```bash
 cd /ddnB/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19
-python run_scripts/submit_benchmark.py --coldflow --then-benchmark
+
+# 2 nodes each (40 MPI tasks) — workq partition
+python run_scripts/submit_benchmark.py --coldflow --then-benchmark --nodes 2
+
+# 4 nodes each (80 MPI tasks)
+python run_scripts/submit_benchmark.py --coldflow --then-benchmark --nodes 4
+
+# Single node (20 tasks) — stays on the single partition
+python run_scripts/submit_benchmark.py --coldflow --then-benchmark --nodes 1
 ```
+
+> **Partition rules (QB2):**
+> - `--nodes 1` → `single` partition
+> - `--nodes 2+` → `workq` partition
 
 ### Option B — Submit stages manually
 
 **Step 1:** Submit cold flow only:
 
 ```bash
-python run_scripts/submit_benchmark.py --coldflow
+python run_scripts/submit_benchmark.py --coldflow --nodes 2
 ```
 
 Wait for it to finish (`squeue -u elo`), then find the final plotfile:
@@ -71,19 +84,19 @@ ls -dt results/coldflow/plt* | head -1
 **Step 2:** Submit all benchmark solvers (auto-detects the latest cold flow plotfile):
 
 ```bash
-python run_scripts/submit_benchmark.py --benchmark
+python run_scripts/submit_benchmark.py --benchmark --nodes 4
 ```
 
 Or submit a specific solver only:
 
 ```bash
-python run_scripts/submit_benchmark.py --benchmark --solver cvode_denseAJ
+python run_scripts/submit_benchmark.py --benchmark --solver cvode_denseAJ --nodes 2
 ```
 
 Or pass the plotfile path explicitly:
 
 ```bash
-python run_scripts/submit_benchmark.py --benchmark --coldflow-plt results/coldflow/plt01234
+python run_scripts/submit_benchmark.py --benchmark --coldflow-plt results/coldflow/plt01234 --nodes 4
 ```
 
 ---
