@@ -23,3 +23,12 @@ temporals
 .project
 Exec/**/*.cproject
 Exec/**/*.project
+
+# Build artifacts
+*.log
+tmp_build_dir/
+*.o
+*.a
+*.ex
+plt*/
+chk*/

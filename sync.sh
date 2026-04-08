@@ -18,3 +18,8 @@ git checkout qss-benchmark 2>/dev/null || git checkout -b qss-benchmark origin/q
 
 cd "$SCRIPT_DIR"
 echo "Done. All synced."
+
+# Load environment if on LONI
+if hostname | grep -q "qbd"; then
+    source "$SCRIPT_DIR/setup_env_loni.sh"
+fi
