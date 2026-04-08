@@ -45,9 +45,7 @@ CORES_PER_NODE = 20
 SOLVERS = [
     "cvode_dense",
     "cvode_denseAJ",
-    "cvode_sparse",
     "cvode_gmres",
-    "rk64",
 ]
 
 # ============================================================

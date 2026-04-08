@@ -127,9 +127,9 @@ for 500 steps. Timing data is captured in `logs/run_<solver>.log`.
 |-----------------------|----------------|------------------|--------------------------------|
 | `input.cvode_dense`   | ReactorCvode   | dense_direct     | Full dense Jacobian            |
 | `input.cvode_denseAJ` | ReactorCvode   | denseAJ_direct   | Analytical Jacobian (default)  |
-| `input.cvode_sparse`  | ReactorCvode   | sparse_direct     | KLU sparse factorization       |
 | `input.cvode_gmres`   | ReactorCvode   | GMRES            | Iterative Krylov solver        |
-| `input.rk64`          | ReactorRK64    | —                | Explicit 6-stage RK, no Jac.   |
+
+> `cvode_sparse` (KLU) and `rk64` were removed — both failed to run for this case.
 
 Common ODE tolerances across all variants: `rtol = 1e-6`, `atol = 1e-5`.
 

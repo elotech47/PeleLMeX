@@ -129,9 +129,7 @@ Solver               | Total Time (s)  | Steps
 ---------------------+-----------------+----------
 cvode_dense          | 1842.3          | 500
 cvode_denseAJ        | 1204.7          | 500
-cvode_sparse         |  987.1          | 500
 cvode_gmres          | 1531.8          | 500
-rk64                 |  623.4          | 500
 ```
 
 Plotfiles and checkpoints are in `results/<solver>/`.
@@ -146,15 +144,11 @@ CounterFlow_drm19/
 │   ├── coldflow/          ← already done
 │   ├── cvode_dense/
 │   ├── cvode_denseAJ/
-│   ├── cvode_sparse/
-│   ├── cvode_gmres/
-│   └── rk64/
+│   └── cvode_gmres/
 └── logs/
     ├── run_cvode_dense.log
     ├── run_cvode_denseAJ.log
-    ├── run_cvode_sparse.log
     ├── run_cvode_gmres.log
-    ├── run_rk64.log
     └── slurm_logs/
 ```
 
