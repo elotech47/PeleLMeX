@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # stop on any error
+set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -12,6 +12,9 @@ git submodule update --init --recursive
 
 echo "Re-attaching PelePhysics to qss-benchmark..."
 cd Submodules/PelePhysics
-git checkout qss-benchmark
+git remote set-url origin https://github.com/elotech47/PelePhysics.git
+git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+git checkout qss-benchmark 2>/dev/null || git checkout -b qss-benchmark origin/qss-benchmark
 
+cd "$SCRIPT_DIR"
 echo "Done. All synced."
