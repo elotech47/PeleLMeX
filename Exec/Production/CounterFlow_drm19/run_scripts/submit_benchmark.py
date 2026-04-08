@@ -126,9 +126,13 @@ def submit_benchmark(nodes, solvers=None, coldflow_plt=None,
 
     # Build any command-line overrides to pass through to the AMReX executable.
     # These take precedence over values in the input file.
-    extra_args = ""
+    extra_args_list = []
     if stop_time is not None:
-        extra_args += f"amr.stop_time={stop_time}"
+        extra_args_list.append(f"amr.stop_time={stop_time}")
+        # amr.max_step = 500 in the input files is a benchmark cap — clear it
+        # when the user specifies a stop time so time is the only termination criterion.
+        extra_args_list.append("amr.max_step=99999999")
+    extra_args = " ".join(extra_args_list)
 
     ntasks    = nodes * CORES_PER_NODE
     partition = partition_for(nodes)
@@ -136,7 +140,7 @@ def submit_benchmark(nodes, solvers=None, coldflow_plt=None,
     print(f"  {nodes} node(s) × {CORES_PER_NODE} cores = {ntasks} MPI tasks  [{partition}]")
     print(f"  Cold flow restart: {coldflow_plt}")
     if stop_time is not None:
-        print(f"  Stop time override: {stop_time} s  (input file value ignored)")
+        print(f"  Stop time override: {stop_time} s  (amr.max_step cap removed)")
     print(f"  Solvers: {solvers}")
 
     job_ids = {}
