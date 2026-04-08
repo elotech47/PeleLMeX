@@ -1,0 +1,170 @@
+Initializing AMReX (eb10d70823df)...
+MPI initialized with 2 MPI processes
+MPI initialized with thread support level 0
+Initializing SUNDIALS with 1 threads...
+SUNDIALS initialized.
+AMReX (eb10d70823df) initialized
+
+ ================= Build infos =================
+ PeleLMeX    git hash: 4df7f82
+ AMReX       git hash: eb10d70
+ PelePhysics git hash: c949ec7
+ AMReX-Hydro git hash: 75da770
+ ===============================================
+ Initialization of Eos ... 
+
+ ==============================================================================
+ State components 
+ ==============================================================================
+ Velocity X: 0, Velocity Y: 1 
+ Density: 2
+ First species: 3
+ Enthalpy: 24
+ Temperature: 25
+ thermo. pressure: 26
+ => Total number of state variables: 27
+ ==============================================================================
+
+ Initialization of Transport ... 
+    Using mixture-averaged transport 
+ Initialization of chemical reactor ... 
+Creating ReactorBase instance: ReactorCvode
+Initializing CVODE:
+ Initializing data for 1 levels 
+ Making new level 0 from scratch 
+ Resetting fine-covered cells mask 
+ ==============================================================================
+ Typical values: 
+	Velocity: 0 0 
+	Density:  1.126996928
+	Temp:     300
+	H:        -230480.6461
+	Y_H2:     0
+	Y_H:      0
+	Y_O:      0
+	Y_O2:     0.22135
+	Y_OH:     0
+	Y_H2O:    0
+	Y_HO2:    0
+	Y_CH2:    0
+	Y_CH2(S): 0
+	Y_CH3:    0
+	Y_CH4:    0.05
+	Y_CO:     0
+	Y_CO2:    0
+	Y_HCO:    0
+	Y_CH2O:   0
+	Y_CH3O:   0
+	Y_C2H4:   0
+	Y_C2H5:   0
+	Y_C2H6:   0
+	Y_N2:     0.72865
+	Y_AR:     0
+ ==============================================================================
+ Initial dt: 1e-08
+
+ Doing initial projection(s) 
+
+ Initial velocity projection:   U: 0  V: 0
+ >> After initial velocity projection:   U: 0.1784339857  V: 0.1713086501
+ Initial dt: 1e-08
+ Initial velocity projection:   U: 0.1784339857  V: 0.1713086501
+ >> After initial velocity projection:   U: 0.1788592021  V: 0.1729203803
+ ==============================================================================
+
+ Doing initial pressure iteration(s) 
+
+ ================   INITIAL ITERATION [0]   ================ 
+ STEP [-1] - Time: 0, dt 1e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.036394367
+
+ ================   INITIAL ITERATION [1]   ================ 
+ STEP [-1] - Time: 0, dt 1e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.036034971
+
+ ================   INITIAL ITERATION [2]   ================ 
+ STEP [-1] - Time: 0, dt 1e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.039619563
+
+ Writing plotfile: plt00000
+
+ Writing checkpoint file: chk00000
+ ==============================================================================
+
+ ====================   NEW TIME STEP   ==================== 
+ STEP [0] - Time: 0, dt 1e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.044779458
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 2.929215323e-05, divu: 0.002451961881
+ STEP [1] - Time: 1e-08, dt 1.1e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.035412871
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 4.343766435e-05, divu: 0.002451974363
+ STEP [2] - Time: 2.1e-08, dt 1.21e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.032499361
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 5.910155275e-05, divu: 0.002451999094
+ STEP [3] - Time: 3.31e-08, dt 1.331e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.032376586
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 7.630868531e-05, divu: 0.002452026299
+ STEP [4] - Time: 4.641e-08, dt 1.4641e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.03171393
+
+ Writing plotfile: plt00005
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 9.512861395e-05, divu: 0.002452056224
+ STEP [5] - Time: 6.1051e-08, dt 1.61051e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.034554992
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 0.0001156572482, divu: 0.002452089143
+ STEP [6] - Time: 7.71561e-08, dt 1.771561e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.03353955
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 0.0001380079862, divu: 0.002452125355
+ STEP [7] - Time: 9.487171e-08, dt 1.9487171e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.032041025
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 0.0001623059712, divu: 0.00245216519
+ STEP [8] - Time: 1.14358881e-07, dt 2.14358881e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.026572811
+
+ ====================   NEW TIME STEP   ==================== 
+ Est. time step - Conv: 0.0001886831499, divu: 0.002452209009
+ STEP [9] - Time: 1.357947691e-07, dt 2.357947691e-08, Ncells 1024
+   SDC iter [1] 
+ >> PeleLMeX::Advance() --> Time: 0.024679061
+
+ Writing plotfile: plt00010
+
+ >> Final simulation time: 1.59374246e-07
+
+ Writing checkpoint file: chk00010
+
+Total Time: 0.493738077
+Unused ParmParse Variables:
+  [TOP]::peleLM.mixtureFraction.fuelTank(nvals = 1)  :: [CH4:1.0]
+  [TOP]::peleLM.mixtureFraction.oxidTank(nvals = 2)  :: [O2:0.233, N2:0.767]
+  [TOP]::prob.T_ox(nvals = 1)  :: [300.0]
+
+AMReX (eb10d70823df) finalized
