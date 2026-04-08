@@ -14,7 +14,7 @@
 # ============================================================
 # Environment setup
 # ============================================================
-source ~/combustion_research/PeleLMeX/setup_env_loni.sh
+source /work/elo/combustion_research/PeleLMeX/setup_env_loni.sh
 
 # ============================================================
 # Working directory

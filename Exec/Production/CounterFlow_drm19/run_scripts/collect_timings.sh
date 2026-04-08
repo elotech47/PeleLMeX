@@ -2,7 +2,7 @@
 # Extracts timing summary from all benchmark run logs
 # Usage: bash collect_timings.sh
 
-CASE_DIR=~/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19
+CASE_DIR=/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19
 LOG_DIR=${CASE_DIR}/logs
 
 printf "\n%-20s | %-15s | %-10s\n" "Solver" "Total Time (s)" "Steps"
