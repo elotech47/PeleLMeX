@@ -79,13 +79,13 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
     amrex::Real massfrac_cold[NUM_SPECIES] = {0.0};
     amrex::Real massfrac_hot[NUM_SPECIES] = {0.0};
 
-    massfrac_cold[CH4_ID] = 0.05;
+    massfrac_cold[NC12H26_ID] = 0.05;
     massfrac_cold[H2O_ID] = 0.0;
     massfrac_cold[CO2_ID] = 0.0;
-    massfrac_cold[O2_ID] = 0.233 * (1.0 - massfrac_cold[CH4_ID]);
+    massfrac_cold[O2_ID] = 0.233 * (1.0 - massfrac_cold[NC12H26_ID]);
     ;
     massfrac_cold[N2_ID] =
-      1.0 - massfrac_cold[CH4_ID] - massfrac_cold[O2_ID];
+      1.0 - massfrac_cold[NC12H26_ID] - massfrac_cold[O2_ID];
 
     state(i, j, k, TEMP) = prob_parm.T_inert;
 
@@ -99,7 +99,7 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
         (1.0 + std::tanh((prob_parm.ignitSphereRad - radius) / mixingWidth));
       state(i, j, k, TEMP) = mixingFunction * prob_parm.ignitT +
                              (1.0 - mixingFunction) * prob_parm.T_inert;
-      massfrac_hot[CH4_ID] = 0.00;
+      massfrac_hot[NC12H26_ID] = 0.00;
       massfrac_hot[H2O_ID] = prob_parm.Y_H2O_ign;
       massfrac_hot[CO2_ID] = prob_parm.Y_CO2_ign;
       massfrac_hot[O2_ID] =
@@ -107,8 +107,8 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
       massfrac_hot[N2_ID] =
         1.0 - massfrac_hot[H2O_ID] - massfrac_hot[CO2_ID] - massfrac_hot[O2_ID];
 
-      massfrac[CH4_ID] = mixingFunction * massfrac_hot[CH4_ID] +
-                             (1.0 - mixingFunction) * massfrac_cold[CH4_ID];
+      massfrac[NC12H26_ID] = mixingFunction * massfrac_hot[NC12H26_ID] +
+                             (1.0 - mixingFunction) * massfrac_cold[NC12H26_ID];
       massfrac[H2O_ID] = mixingFunction * massfrac_hot[H2O_ID] +
                          (1.0 - mixingFunction) * massfrac_cold[H2O_ID];
       massfrac[CO2_ID] = mixingFunction * massfrac_hot[CO2_ID] +
@@ -118,7 +118,7 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
       massfrac[N2_ID] = mixingFunction * massfrac_hot[N2_ID] +
                         (1.0 - mixingFunction) * massfrac_cold[N2_ID];
     } else {
-      massfrac[CH4_ID] = massfrac_cold[CH4_ID];
+      massfrac[NC12H26_ID] = massfrac_cold[NC12H26_ID];
       massfrac[H2O_ID] = massfrac_cold[H2O_ID];
       massfrac[CO2_ID] = massfrac_cold[CO2_ID];
       massfrac[O2_ID] = massfrac_cold[O2_ID];
@@ -177,7 +177,7 @@ struct MyProblemSpecificFunctions : public DefaultProblemSpecificFunctions
 
     massfrac_ox[N2_ID] = prob_parm.Y_N2_ox;
     massfrac_ox[O2_ID] = prob_parm.Y_O2_ox;
-    massfrac_fuel[CH4_ID] = prob_parm.Y_fuel; // Replace ID with gas fuel
+    massfrac_fuel[NC12H26_ID] = prob_parm.Y_fuel; // Replace ID with gas fuel
     massfrac_fuel[N2_ID] = prob_parm.Y_N2_fuel;
     massfrac_inert[N2_ID] = 1.0;
 

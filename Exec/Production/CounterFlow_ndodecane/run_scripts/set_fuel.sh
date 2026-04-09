@@ -81,6 +81,26 @@ if [[ -n "$NEW_FUEL" ]]; then
 fi
 
 # ============================================================
+# Apply fuel species ID change to pelelmex_prob.H
+# ============================================================
+PROB_H="${CASE_DIR}/pelelmex_prob.H"
+
+if [[ -n "$NEW_FUEL" && -f "$PROB_H" ]]; then
+    OLD_FUEL_ID="${CURRENT_FUEL}_ID"
+    NEW_FUEL_ID="${NEW_FUEL}_ID"
+    if grep -q "${OLD_FUEL_ID}" "${PROB_H}"; then
+        echo "  Updating fuel species ID in pelelmex_prob.H: ${OLD_FUEL_ID} → ${NEW_FUEL_ID}"
+        sed -i "s|${OLD_FUEL_ID}|${NEW_FUEL_ID}|g" "${PROB_H}"
+        echo "    updated: pelelmex_prob.H"
+        echo ""
+        echo "  NOTE: pelelmex_prob.H change requires a full rebuild:"
+        echo "    make realclean && make -j8"
+    else
+        echo "  WARNING: ${OLD_FUEL_ID} not found in pelelmex_prob.H — check manually"
+    fi
+fi
+
+# ============================================================
 # Apply mechanism change to GNUmakefile
 # ============================================================
 if [[ -n "$NEW_MECH" ]]; then
