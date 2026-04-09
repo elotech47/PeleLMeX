@@ -1,0 +1,55 @@
+#--- minimal test: 10 steps only ---
+geometry.is_periodic = 0 0
+geometry.coord_sys   = 0
+geometry.prob_lo     = -0.0075 -0.0075 0.0
+geometry.prob_hi     =  0.0075  0.0075 0.0
+
+peleLM.lo_bc = Inflow Outflow
+peleLM.hi_bc = Inflow Outflow
+
+amr.n_cell          = 32 32
+amr.max_level       = 0
+amr.max_grid_size   = 32
+
+prob.P_mean          = 101325.0
+prob.T_ox            = 300.0
+prob.T_fuel          = 300.0
+prob.T_inert         = 300.0
+prob.Y_O2_ox         = 0.233
+prob.Y_N2_ox         = 0.767
+prob.Y_N2_fuel       = 1.0
+prob.Y_fuel          = 0.0
+prob.massflow_ox     = 0.1
+prob.massflow_fuel   = 0.1
+prob.jet_radius      = 0.0025
+prob.inert_velocity_ox   = 0.05
+prob.inert_velocity_fuel = 0.05
+prob.do_ignition     = 0
+
+peleLM.v             = 1
+peleLM.sdc_iterMax   = 1
+peleLM.use_wbar      = 1
+peleLM.floor_species = 1
+
+amr.max_step         = 10
+amr.dt_shrink        = 0.1
+amr.init_dt          = 1.0e-7
+amr.cfl              = 0.3
+amr.plot_int         = 5
+amr.check_int        = 100
+
+peleLM.chem_integrator    = "ReactorCvode"
+peleLM.use_typ_vals_chem  = 1
+
+peleLM.fuel_name = CH4
+peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
+peleLM.mixtureFraction.fuelTank = CH4:1.0
+
+ode.rtol                  = 1.0e-6
+ode.atol                  = 1.0e-5
+cvode.solve_type          = denseAJ_direct
+cvode.max_order           = 4
+
+nodal_proj.verbose   = 0
+mac_proj.verbose     = 0
+diffusion.verbose    = 0

@@ -1,0 +1,47 @@
+#!/bin/bash
+#SBATCH --job-name=pelelm_bench_{{SOLVER_NAME}}
+#SBATCH --output={{CASE_DIR}}/logs/slurm_logs/%x_%j.out
+#SBATCH --error={{CASE_DIR}}/logs/slurm_logs/%x_%j.err
+#SBATCH --time=48:00:00
+#SBATCH --nodes={{NODES}}
+#SBATCH --ntasks={{NTASKS}}
+#SBATCH --cpus-per-task=1
+#SBATCH --partition={{PARTITION}}
+#SBATCH -A loni_chemnet3
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=eikpon1@lsu.edu
+
+# ============================================================
+# Environment setup
+# ============================================================
+source /work/elo/combustion_research/PeleLMeX/setup_env_loni.sh
+
+# ============================================================
+# Working directory
+# ============================================================
+cd $SLURM_SUBMIT_DIR
+mkdir -p {{CASE_DIR}}/logs/slurm_logs
+mkdir -p {{CASE_DIR}}/results/{{SOLVER_NAME}}
+
+# ============================================================
+# Benchmark run — restart from cold flow plotfile
+# ============================================================
+CASE_DIR="{{CASE_DIR}}"
+SOLVER_NAME="{{SOLVER_NAME}}"
+COLDFLOW_PLT="{{COLDFLOW_PLT}}"
+EXE="${CASE_DIR}/PeleLMeX2d.gnu.MPI.ex"
+
+echo "Starting benchmark run: ${SOLVER_NAME}"
+echo "Restarting from: ${COLDFLOW_PLT}"
+echo "Nodes: {{NODES}}  Tasks: {{NTASKS}}"
+
+cd ${CASE_DIR}/results/${SOLVER_NAME}
+
+mpirun -np {{NTASKS}} ${EXE} ${CASE_DIR}/inputs/input.${SOLVER_NAME} \
+    amr.initDataPlt=${COLDFLOW_PLT} \
+    amr.plot_file=${CASE_DIR}/results/${SOLVER_NAME}/plt \
+    amr.check_file=${CASE_DIR}/results/${SOLVER_NAME}/chk \
+    {{EXTRA_ARGS}} \
+    2>&1 | tee ${CASE_DIR}/logs/run_${SOLVER_NAME}.log
+
+echo "Benchmark run complete: ${SOLVER_NAME}"
