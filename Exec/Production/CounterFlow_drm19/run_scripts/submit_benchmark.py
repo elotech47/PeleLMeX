@@ -46,6 +46,7 @@ SOLVERS = [
     "cvode_dense",
     "cvode_denseAJ",
     "cvode_gmres",
+    "qss",
 ]
 
 # ============================================================

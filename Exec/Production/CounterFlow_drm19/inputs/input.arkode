@@ -23,7 +23,6 @@ amr.blocking_factor = 4
 amr.max_grid_size   = 64               # max box size
 
 #--------------------------- Problem -------------------------------
-#prob.P_mean = 101325.0
 prob.P_mean = 792897.5 #7.82529*one_atm
 
 prob.T_ox   = 450.0
@@ -41,8 +40,8 @@ prob.inert_velocity_ox = 0.1500
 prob.inert_velocity_fuel = 0.0617
 
 prob.do_ignition = 1
-prob.ignition_SphT = 2200.0
-prob.ignition_SphRad = 0.003
+prob.ignition_SphT = 1000.0
+prob.ignition_SphRad = 0.0015
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 3 						# [OPT, DEF=0] Verbose
@@ -59,7 +58,6 @@ peleLM.initDataPlt_patch_flow_variables = true
 amr.regrid_on_restart = 1
 
 amr.check_int = 2000
-#amr.plot_int = 200
 
 amr.plot_per = 0.005  				#Plot every t=5ms
 amr.plot_per_exact = 1            	# [OPT, DEF=0] Flag to enforce exactly plt_per by shortening dt
@@ -67,7 +65,7 @@ amr.plot_per_exact = 1            	# [OPT, DEF=0] Flag to enforce exactly plt_pe
 amr.max_step = 500                          # enough steps to get good timing
 amr.dt_shrink = 0.01
 amr.init_dt = 1.0e-6
-amr.stop_time = 0.0150
+amr.stop_time = 0.150
 amr.cfl = 0.1
 amr.derive_plot_vars = avg_pressure mag_vort mass_fractions mixture_fraction
 
@@ -77,13 +75,35 @@ peleLM.mixtureFraction.type   = mass
 peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
 peleLM.mixtureFraction.fuelTank = CH4:1.0
 
-peleLM.chem_integrator = "ReactorCvode"
+#-------------------------ARKODE SETTINGS----------------------------
+# Integrator
+peleLM.chem_integrator = "ReactorArkode"
 peleLM.use_typ_vals_chem = 1
-ode.rtol = 1.0e-6
-ode.atol = 1.0e-5
-cvode.solve_type = dense_direct
-cvode.max_order  = 4
-cvode.max_substeps = 10000
+ode.rtol = 1.0e-6                     # Relative tolerance
+ode.atol = 1.0e-5                     # Absolute tolerance
+
+# Step type: 0 = ARKStep (default), 1 = ERKStep
+ode.use_erkstep = 1
+
+# RK method (integer code — see ReactorArkode.cpp for all options):
+#   20 = ARKODE_HEUN_EULER_2_1_2
+#   30 = ARKODE_BOGACKI_SHAMPINE_4_2_3
+#   31 = ARKODE_ARK324L2SA_ERK_4_2_3
+#   40 = ARKODE_ZONNEVELD_5_3_4          (default)
+#   41 = ARKODE_ARK436L2SA_ERK_6_3_4
+#   42 = ARKODE_SAYFY_ABURUB_6_3_4
+#   43 = ARKODE_ARK437L2SA_ERK_7_3_4
+#   50 = ARKODE_CASH_KARP_6_4_5
+#   51 = ARKODE_FEHLBERG_6_4_5
+#   52 = ARKODE_DORMAND_PRINCE_7_4_5
+#   53 = ARKODE_ARK548L2SA_ERK_8_4_5
+#   54 = ARKODE_ARK548L2SAb_ERK_8_4_5
+#   60 = ARKODE_VERNER_8_5_6
+#   80 = ARKODE_FEHLBERG_13_7_8
+ode.rk_method = 40
+
+# Step-size controller: 0 = PID (default), 1 = PI, 2 = I, 3 = explicit Gustafsson
+ode.rk_controller = 0
 
 nodal_proj.verbose = 0
 mac_proj.verbose = 0
@@ -100,7 +120,3 @@ amr.refinement_indicators = gradT
 amr.gradT.max_level = 2
 amr.gradT.adjacent_difference_greater = 100
 amr.gradT.field_name = temp
-
-#amrex.fpe_trap_invalid = 1
-#amrex.fpe_trap_zero = 1
-#amrex.fpe_trap_overflow = 1

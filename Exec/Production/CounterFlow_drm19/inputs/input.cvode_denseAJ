@@ -41,8 +41,8 @@ prob.inert_velocity_ox = 0.1500
 prob.inert_velocity_fuel = 0.0617
 
 prob.do_ignition = 1
-prob.ignition_SphT = 1000.0
-prob.ignition_SphRad = 0.0015
+prob.ignition_SphT = 2200.0
+prob.ignition_SphRad = 0.003
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 3 						# [OPT, DEF=0] Verbose
@@ -61,13 +61,13 @@ amr.regrid_on_restart = 1
 amr.check_int = 2000
 #amr.plot_int = 200
 
-amr.plot_per = 0.005  				#Plot every t=5ms
+amr.plot_per = 0.001  				#Plot every t=5ms
 amr.plot_per_exact = 1            	# [OPT, DEF=0] Flag to enforce exactly plt_per by shortening dt
 
-amr.max_step = 500                          # enough steps to get good timing
+#amr.max_step = 500                          # enough steps to get good timing
 amr.dt_shrink = 0.01
 amr.init_dt = 1.0e-6
-amr.stop_time = 0.150
+amr.stop_time = 0.01
 amr.cfl = 0.1
 amr.derive_plot_vars = avg_pressure mag_vort mass_fractions mixture_fraction
 

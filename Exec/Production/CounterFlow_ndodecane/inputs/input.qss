@@ -41,8 +41,8 @@ prob.inert_velocity_ox = 0.1500
 prob.inert_velocity_fuel = 0.0617
 
 prob.do_ignition = 1
-prob.ignition_SphT = 2200.0
-prob.ignition_SphRad = 0.003
+prob.ignition_SphT = 1800.0
+prob.ignition_SphRad = 0.0015
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 3 						# [OPT, DEF=0] Verbose
@@ -67,23 +67,29 @@ amr.plot_per_exact = 1            	# [OPT, DEF=0] Flag to enforce exactly plt_pe
 amr.max_step = 500                          # enough steps to get good timing
 amr.dt_shrink = 0.01
 amr.init_dt = 1.0e-6
-amr.stop_time = 0.0150
+amr.stop_time = 0.150
 amr.cfl = 0.1
 amr.derive_plot_vars = avg_pressure mag_vort mass_fractions mixture_fraction
 
-peleLM.fuel_name = CH4
+peleLM.fuel_name = NC12H26
 peleLM.mixtureFraction.format = Cantera
 peleLM.mixtureFraction.type   = mass
 peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
-peleLM.mixtureFraction.fuelTank = CH4:1.0
+peleLM.mixtureFraction.fuelTank = NC12H26:1.0
 
-peleLM.chem_integrator = "ReactorCvode"
+peleLM.chem_integrator = "ReactorQSS"
 peleLM.use_typ_vals_chem = 1
 ode.rtol = 1.0e-6
 ode.atol = 1.0e-5
-cvode.solve_type = dense_direct
-cvode.max_order  = 4
-cvode.max_substeps = 10000
+qss.epsmax   = 20.0
+qss.epsmin   = 1.0e-2
+qss.dtmin    = 1.0e-15
+qss.dtmax    = 1.0e-6
+qss.itermax  = 2
+qss.tfd      = 1.000008
+qss.abstol   = 1.0e-8
+qss.Tmax     = 4000.0
+qss.stability_check = 1
 
 nodal_proj.verbose = 0
 mac_proj.verbose = 0

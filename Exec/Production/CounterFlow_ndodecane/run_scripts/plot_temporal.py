@@ -32,10 +32,10 @@ import matplotlib.colors as mcolors
 # ============================================================
 # Configuration
 # ============================================================
-CASE_DIR    = Path("/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_ndodecane")
+CASE_DIR    = Path("/home/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_ndodecane")
 RESULTS_DIR = CASE_DIR / "results"
 
-ALL_SOLVERS = ["cvode_dense", "cvode_denseAJ", "cvode_gmres"]
+ALL_SOLVERS = ["cvode_dense", "cvode_denseAJ", "cvode_gmres", "qss"]
 
 # Colormap for time evolution: early = cool, late = warm
 CMAP = cm.plasma

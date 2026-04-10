@@ -33,12 +33,13 @@ CASE_DIR    = Path("/work/elo/combustion_research/PeleLMeX/Exec/Production/Count
 RESULTS_DIR = CASE_DIR / "results"
 LOGS_DIR    = CASE_DIR / "logs"
 
-ALL_SOLVERS = ["cvode_dense", "cvode_denseAJ", "cvode_gmres"]
+ALL_SOLVERS = ["cvode_dense", "cvode_denseAJ", "cvode_gmres", "qss"]
 
 STYLES = {
     "cvode_dense":   dict(color="#1f77b4", ls="-",  lw=1.8),
     "cvode_denseAJ": dict(color="#ff7f0e", ls="--", lw=1.8),
     "cvode_gmres":   dict(color="#d62728", ls=":",  lw=2.0),
+    "qss":           dict(color="#2ca02c", ls="-.", lw=1.8),
 }
 
 COLDFLOW_STYLE = dict(color="black", ls=(0, (3, 1, 1, 1)), lw=1.4, alpha=0.7)

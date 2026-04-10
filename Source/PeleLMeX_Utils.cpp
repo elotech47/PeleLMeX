@@ -1617,39 +1617,73 @@ PeleLM::setTypicalValues(const TimeStamp a_time, const int is_init)
 
   if ((is_init != 0) || m_verbose > 1) {
     amrex::Print() << PrettyLine;
-    amrex::Print() << " Typical values: " << '\n';
-    amrex::Print() << "\tVelocity: ";
+    amrex::Print() << " Typical values (typ = 0.5*(max+min), except velocity = max|u|):\n";
+    amrex::Print() << std::left
+                   << "\t" << std::setw(14) << "Variable"
+                   << std::setw(20) << "typ"
+                   << std::setw(20) << "min"
+                   << std::setw(20) << "max" << '\n';
+    amrex::Print() << "\t" << std::string(74, '-') << '\n';
+
+    // Velocity: typ = max(|u|), so report max(u) and min(u) separately
     for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
-      amrex::Print() << typical_values[idim] << ' ';
+      std::string vname = (idim == 0) ? "Vel-x" : "Vel-y";
+      amrex::Print() << std::left
+                     << "\t" << std::setw(14) << vname
+                     << std::setw(20) << typical_values[idim]
+                     << std::setw(20) << stateMin[VELX + idim]
+                     << std::setw(20) << stateMax[VELX + idim] << '\n';
     }
-    amrex::Print() << '\n';
+
     if (m_incompressible == 0) {
-      amrex::Print() << "\tDensity:  " << typical_values[DENSITY] << '\n';
-      amrex::Print() << "\tTemp:     " << typical_values[TEMP] << '\n';
-      amrex::Print() << "\tH:        " << typical_values[RHOH] << '\n';
+      amrex::Print() << std::left
+                     << "\t" << std::setw(14) << "Density"
+                     << std::setw(20) << typical_values[DENSITY]
+                     << std::setw(20) << stateMin[DENSITY]
+                     << std::setw(20) << stateMax[DENSITY] << '\n';
+
+      amrex::Print() << std::left
+                     << "\t" << std::setw(14) << "Temp"
+                     << std::setw(20) << typical_values[TEMP]
+                     << std::setw(20) << stateMin[TEMP]
+                     << std::setw(20) << stateMax[TEMP] << '\n';
+
+      // H is stored as rho*H; print specific enthalpy (per unit mass)
+      amrex::Print() << std::left
+                     << "\t" << std::setw(14) << "H"
+                     << std::setw(20) << typical_values[RHOH]
+                     << std::setw(20) << stateMin[RHOH] / typical_values[DENSITY]
+                     << std::setw(20) << stateMax[RHOH] / typical_values[DENSITY]
+                     << '\n';
+
       amrex::Vector<std::string> spec_names;
       pele::physics::eos::speciesNames<pele::physics::PhysicsType::eos_type>(
         spec_names, &(eos_parms.host_parm()));
       for (int n = 0; n < NUM_SPECIES; ++n) {
-        amrex::Print() << "\tY_" << spec_names[n]
-                       << std::setw(
-                            amrex::max<int>(
-                              0, static_cast<int>(8 - spec_names[n].length())))
-                       << std::left << ":" << typical_values[FIRSTSPEC + n]
+        // Species stored as rho*Y; divide by typical density for mass fraction
+        const amrex::Real rho_typ = typical_values[DENSITY];
+        std::string sname = "Y_" + spec_names[n];
+        amrex::Print() << std::left
+                       << "\t" << std::setw(14) << sname
+                       << std::setw(20) << typical_values[FIRSTSPEC + n]
+                       << std::setw(20) << stateMin[FIRSTSPEC + n] / rho_typ
+                       << std::setw(20) << stateMax[FIRSTSPEC + n] / rho_typ
                        << '\n';
       }
 #ifdef PELE_USE_PLASMA
-      amrex::Print() << "\tnE:       " << typical_values[NE] << '\n';
+      amrex::Print() << std::left
+                     << "\t" << std::setw(14) << "nE"
+                     << std::setw(20) << typical_values[NE]
+                     << std::setw(20) << stateMin[NE]
+                     << std::setw(20) << stateMax[NE] << '\n';
 #endif
 #if NUM_ODE > 0
       for (int n = 0; n < NUM_ODE; ++n) {
-        amrex::Print() << "\t" << m_ode_names[n]
-                       << std::setw(
-                            amrex::max<int>(
-                              0,
-                              static_cast<int>(10 - m_ode_names[n].length())))
-                       << std::left << ":" << typical_values[FIRSTODE + n]
-                       << '\n';
+        amrex::Print() << std::left
+                       << "\t" << std::setw(14) << m_ode_names[n]
+                       << std::setw(20) << typical_values[FIRSTODE + n]
+                       << std::setw(20) << stateMin[FIRSTODE + n]
+                       << std::setw(20) << stateMax[FIRSTODE + n] << '\n';
       }
 #endif
     }

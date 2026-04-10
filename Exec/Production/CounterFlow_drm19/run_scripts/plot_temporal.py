@@ -32,10 +32,11 @@ import matplotlib.colors as mcolors
 # ============================================================
 # Configuration
 # ============================================================
-CASE_DIR    = Path("/work/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19")
+CASE_DIR    = Path("/home/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19")
 RESULTS_DIR = CASE_DIR / "results"
 
-ALL_SOLVERS = ["cvode_dense", "cvode_denseAJ", "cvode_gmres"]
+# Directories to never treat as solver results
+_SKIP_DIRS = {"coldflow"}
 
 # Colormap for time evolution: early = cool, late = warm
 CMAP = cm.plasma
@@ -55,6 +56,22 @@ def find_plotfiles(solver_dir):
         if p.is_dir() and pattern.match(p.name)
     )
     return candidates
+
+
+def discover_solvers(results_dir):
+    """
+    Auto-discover solver subdirectories in results_dir that contain plotfiles.
+    Skips 'coldflow' and any directory without at least one plt##### folder.
+    """
+    results_dir = Path(results_dir)
+    if not results_dir.is_dir():
+        return []
+    found = []
+    for d in sorted(results_dir.iterdir()):
+        if d.is_dir() and d.name not in _SKIP_DIRS:
+            if find_plotfiles(d):
+                found.append(d.name)
+    return found
 
 
 def read_plotfile_time(pltfile):
@@ -86,7 +103,7 @@ def main():
         description="Temporal evolution of centerline temperature per solver"
     )
     parser.add_argument("--solvers", nargs="+", default=None,
-                        help="Subset of solvers (default: all three)")
+                        help="Subset of solvers to plot (default: all discovered in results/)")
     parser.add_argument("--field", default="temp",
                         help="Plotfile field name (default: temp)")
     parser.add_argument("--every", type=int, default=1,
@@ -104,7 +121,14 @@ def main():
         sys.exit(1)
 
     results_dir = Path(args.results_dir)
-    solvers     = args.solvers or ALL_SOLVERS
+    solvers     = args.solvers or discover_solvers(results_dir)
+
+    if not solvers:
+        print(f"No solver results found in {results_dir}")
+        print("  Run at least one solver first, or pass --solvers explicitly.")
+        sys.exit(1)
+
+    print(f"Solvers found: {solvers}")
 
     # ── collect all profiles per solver ──────────────────────────────────────
     all_data = {}   # solver → list of (t_s, x_mm, T)
