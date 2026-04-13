@@ -68,6 +68,7 @@ PeleLM::LevelDataReact::LevelDataReact(
 #endif
   I_R.define(ba, dm, IRsize, 0, amrex::MFInfo(), factory);
   functC.define(ba, dm, 1, 0, amrex::MFInfo(), factory);
+  solverChoice.define(ba, dm, 1, 0, amrex::MFInfo(), factory);
 }
 
 #ifdef PELE_USE_PLASMA

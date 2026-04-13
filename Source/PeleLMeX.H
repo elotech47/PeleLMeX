@@ -215,8 +215,9 @@ public:
       const amrex::BoxArray& ba,
       const amrex::DistributionMapping& dm,
       const amrex::FabFactory<amrex::FArrayBox>& factory);
-    amrex::MultiFab I_R;    // Species reaction rates
-    amrex::MultiFab functC; // Implicit integrator function call count
+    amrex::MultiFab I_R;           // Species reaction rates
+    amrex::MultiFab functC;        // Implicit integrator function call count
+    amrex::MultiFab solverChoice;  // Per-cell solver: 0=QSS (or masked), 1=CVODE
 #ifdef PELE_USE_PLASMA
     amrex::MultiFab I_RnE; // Electron number density reaction term
 #endif

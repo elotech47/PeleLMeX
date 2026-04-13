@@ -110,6 +110,16 @@ PeleLM::advanceChemistry(
 #endif
     );
 
+    // Fill per-cell solver choice: 0 = QSS (or masked), 1 = CVODE
+    // fcl < 0 means QSS was used (ReactorAdaptive sets FC_in = -1)
+    // fcl > 0 means CVODE was used (FC_in = number of RHS evaluations)
+    // fcl = 0 means the cell was masked (no chemistry)
+    auto const& sc = ldataR_p->solverChoice.array(mfi);
+    amrex::ParallelFor(
+      bx, [fcl, sc] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+        sc(i, j, k) = (fcl(i, j, k) > 0.0) ? 1.0 : 0.0;
+      });
+
     // Convert CGS -> MKS
     amrex::ParallelFor(
       bx, NUM_SPECIES,

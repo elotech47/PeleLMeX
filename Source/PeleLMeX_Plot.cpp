@@ -126,6 +126,8 @@ PeleLM::WritePlotFile()
     ncomp += nCompIR();
     // FunctCall
     ncomp += 1;
+    // SolverChoice
+    ncomp += 1;
     // Extras:
     if (m_plotHeatRelease != 0) {
       ncomp += 1;
@@ -244,6 +246,7 @@ PeleLM::WritePlotFile()
     plt_VarsName.push_back("I_R(nE)");
 #endif
     plt_VarsName.push_back("FunctCall");
+    plt_VarsName.push_back("solver_choice");
     // Extras:
     if (m_plotHeatRelease != 0) {
       plt_VarsName.push_back("HeatRelease");
@@ -383,6 +386,10 @@ PeleLM::WritePlotFile()
 
       amrex::MultiFab::Copy(
         mf_plt[lev], m_leveldatareact[lev]->functC, 0, cnt, 1, 0);
+      cnt += 1;
+
+      amrex::MultiFab::Copy(
+        mf_plt[lev], m_leveldatareact[lev]->solverChoice, 0, cnt, 1, 0);
       cnt += 1;
 
       if (m_plotHeatRelease != 0) {
