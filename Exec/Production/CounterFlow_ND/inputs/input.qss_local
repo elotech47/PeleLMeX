@@ -1,0 +1,97 @@
+#----------------------DOMAIN DEFINITION------------------------
+geometry.is_periodic = 0 0
+geometry.coord_sys   = 0
+geometry.prob_lo     =  -0.0075 -0.0075 0.0
+geometry.prob_hi     =   0.0075  0.0075 0.0
+
+peleLM.lo_bc = Inflow Outflow
+peleLM.hi_bc = Inflow Outflow
+
+#-------------------------AMR CONTROL----------------------------
+amr.n_cell          = 64 64 32
+amr.v               = 1
+amr.max_level       = 0
+amr.ref_ratio       = 2 2 2 2
+amr.regrid_int      = 5
+amr.n_error_buf     = 2 2 2 2
+amr.grid_eff        = 0.7
+amr.blocking_factor = 4
+amr.max_grid_size   = 64
+
+#--------------------------- Problem -------------------------------
+prob.P_mean = 792897.5
+
+prob.T_ox    = 450.0
+prob.T_fuel  = 450.0
+prob.T_inert = 450.0
+prob.Y_O2_ox  = 0.233
+prob.Y_N2_ox  = 0.767
+prob.Y_N2_fuel = 0.0
+prob.Y_fuel   = 1.0
+
+prob.massflow_ox   = 0.9171
+prob.massflow_fuel = 2.228
+prob.jet_radius    = 0.0025
+prob.inert_velocity_ox   = 0.1500
+prob.inert_velocity_fuel = 0.0617
+
+prob.do_ignition     = 1
+prob.ignition_SphT   = 2200.0
+prob.ignition_SphRad = 0.003
+
+#-------------------------PeleLM CONTROL----------------------------
+peleLM.v               = 2
+peleLM.incompressible  = 0
+peleLM.use_wbar        = 1
+peleLM.sdc_iterMax     = 2
+peleLM.floor_species   = 1
+peleLM.deltaT_verbose  = 0
+
+amr.initDataPlt = /home/elo/combustion_research/PeleLMeX/Exec/Production/CounterFlow_drm19/results/coldflow/plt14177
+peleLM.initDataPlt_patch_flow_variables = true
+amr.regrid_on_restart = 1
+
+amr.plot_per       = 0.0005
+amr.plot_per_exact = 1
+amr.dt_shrink      = 0.01
+amr.init_dt        = 1.0e-6
+amr.stop_time      = 0.01
+amr.cfl            = 0.1
+amr.derive_plot_vars = avg_pressure mag_vort mass_fractions mixture_fraction
+
+peleLM.fuel_name = NC12H26
+peleLM.mixtureFraction.format = Cantera
+peleLM.mixtureFraction.type   = mass
+peleLM.mixtureFraction.oxidTank = O2:0.233 N2:0.767
+peleLM.mixtureFraction.fuelTank = NC12H26:1.0
+
+#-------------------------CHEMISTRY----------------------------
+peleLM.chem_integrator   = "ReactorQSS"
+peleLM.use_typ_vals_chem = 1
+ode.rtol = 1.0e-6
+ode.atol = 1.0e-5
+
+qss.epsmax          = 20.0
+qss.epsmin          = 1.0e-2
+qss.dtmin           = 1.0e-18
+qss.dtmax           = 1.0e-6
+qss.itermax         = 2
+qss.tfd             = 1.000008
+qss.abstol          = 1.0e-8
+qss.Tmax            = 3000.0
+qss.stability_check = 1
+
+nodal_proj.verbose = 0
+mac_proj.verbose   = 0
+diffusion.verbose  = 0
+mac_proj.rtol      = 1.0e-10
+nodal_proj.rtol    = 1.0e-10
+
+peleLM.do_temporals    = 1
+peleLM.do_mass_balance = 1
+
+#--------------------REFINEMENT CONTROL------------------------
+amr.refinement_indicators = gradT
+amr.gradT.max_level = 0
+amr.gradT.adjacent_difference_greater = 100
+amr.gradT.field_name = temp
