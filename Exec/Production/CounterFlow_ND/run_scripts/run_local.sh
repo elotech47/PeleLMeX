@@ -95,7 +95,7 @@ run_case() {
         amr.plot_file="${results_dir}/plt" \
         amr.check_file="${results_dir}/chk" \
         ${extra_args} \
-        2>&1 | tee "${log_file}"
+        > "${log_file}" 2>&1
 
     local status=${PIPESTATUS[0]}
     cd "${CASE_DIR}"

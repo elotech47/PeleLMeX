@@ -10,7 +10,7 @@ peleLM.hi_bc = Inflow Outflow
 #-------------------------AMR CONTROL----------------------------
 amr.n_cell          = 64 64 32
 amr.v               = 1
-amr.max_level       = 0                # no refinement for local test
+amr.max_level       = 2                # no refinement for local test
 amr.ref_ratio       = 2 2 2 2
 amr.regrid_int      = 5
 amr.n_error_buf     = 2 2 2 2
@@ -37,7 +37,7 @@ prob.inert_velocity_ox = 0.1500
 prob.inert_velocity_fuel = 0.0617
 
 prob.do_ignition     = 1
-prob.ignition_SphT   = 2200.0
+prob.ignition_SphT   = 1000.0
 prob.ignition_SphRad = 0.0015
 
 #-------------------------PeleLM CONTROL----------------------------
@@ -77,12 +77,12 @@ adaptive.fallback_integrator = "ReactorCvode"  # implicit BDF — flame/ignition
 # Routing condition: TRUE → primary (QSS), FALSE → fallback (CVODE)
 # Combined AND: T < T_threshold AND Y_OH < Y_threshold → QSS
 #               otherwise (T high OR OH high)           → CVODE
-adaptive.condition_type  = "combined"
+adaptive.condition_type  = "temperature"
 adaptive.condition_logic = "AND"
 
 # Temperature threshold: start at 1200 K, adjust based on results.
 # Lower → more cells go to CVODE (safer). Higher → more to QSS (faster).
-adaptive.T_threshold = 450
+adaptive.T_threshold = 450.00001
 
 # OH radical: marks the active reaction zone
 adaptive.species_name = "OH"
@@ -121,6 +121,6 @@ peleLM.do_mass_balance = 1
 
 #--------------------REFINEMENT CONTROL------------------------
 amr.refinement_indicators = gradT
-amr.gradT.max_level = 0
+amr.gradT.max_level = 2
 amr.gradT.adjacent_difference_greater = 100
 amr.gradT.field_name = temp

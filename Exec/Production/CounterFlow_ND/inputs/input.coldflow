@@ -14,7 +14,7 @@ peleLM.hi_bc = Inflow Outflow
 #-------------------------AMR CONTROL----------------------------
 amr.n_cell          = 64 64 32	  	   # Level 0 number of cells in each direction
 amr.v               = 1                # AMR verbose
-amr.max_level       = 0                # maximum level number allowed
+amr.max_level       = 2                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
 amr.regrid_int      = 5                # how often to regrid
 amr.n_error_buf     = 2 2 2 2          # number of buffer cells in error est
@@ -41,8 +41,8 @@ prob.inert_velocity_ox = 0.1500
 prob.inert_velocity_fuel = 0.0617
 
 prob.do_ignition = 0
-prob.ignition_SphT = 2200.0
-prob.ignition_SphRad = 0.003
+prob.ignition_SphT = 1000.0
+prob.ignition_SphRad = 0.0015
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 3 						# [OPT, DEF=0] Verbose
@@ -134,7 +134,7 @@ peleLM.do_mass_balance = 1
 #--------------------REFINEMENT CONTROL------------------------
 amr.refinement_indicators = gradT
 
-amr.gradT.max_level = 0
+amr.gradT.max_level = 2
 amr.gradT.adjacent_difference_greater = 100
 amr.gradT.field_name = temp
 

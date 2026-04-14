@@ -40,8 +40,8 @@ prob.inert_velocity_ox = 0.1500
 prob.inert_velocity_fuel = 0.0617
 
 prob.do_ignition = 1
-prob.ignition_SphT = 2200.0
-prob.ignition_SphRad = 0.001
+prob.ignition_SphT = 1000.0
+prob.ignition_SphRad = 0.0015
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 3 						# [OPT, DEF=0] Verbose
